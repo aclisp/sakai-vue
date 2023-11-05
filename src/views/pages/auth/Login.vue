@@ -4,27 +4,55 @@ import { ref, computed } from 'vue';
 import AppConfig from '@/layout/AppConfig.vue';
 import { directusClient } from '@/service/DirectusService';
 import { useRouter } from 'vue-router';
+import { useForm, useField } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import { z } from 'zod';
+
+const schema = toTypedSchema(
+    z
+        .object({
+            email: z.string().email({ message: 'Email不是一个有效的电子邮件地址' }).min(1, { message: 'Email不能为空' }),
+            password: z.string().min(1, { message: '密码不能为空' }),
+            checked: z.boolean()
+        })
+        .required()
+);
+const { isSubmitting, handleSubmit, errors } = useForm({
+    validationSchema: schema,
+    initialValues: {
+        email: '',
+        password: '',
+        checked: false
+    }
+});
+const { value: email } = useField('email');
+const { value: password } = useField('password');
+const { value: checked } = useField('checked');
+const showError = ref(false);
 
 const { layoutConfig } = useLayout();
-const email = ref('');
-const password = ref('');
-const checked = ref(false);
 const router = useRouter();
 
 const logoUrl = computed(() => {
     return `/layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'}.svg`;
 });
 
-const onSubmit = async () => {
-    console.log(`onSubmit:email='${email.value}',password='${password.value}'`);
-    try {
-        const data = await directusClient.login(email.value, password.value);
-        console.log(`onSubmit.afterLogin:data=%o`, data);
-        router.push({ path: '/pages/empty', replace: true });
-    } catch (err) {
-        console.log(`onSubmit.afterLogin:err=%o`, err);
+const onSubmit = handleSubmit(
+    async (values) => {
+        const { email, password, checked } = values;
+        console.log(`onSubmit:email='${email}',password='${password}',checked=${checked}`);
+        try {
+            const data = await directusClient.login(email, password);
+            console.log(`onSubmit.afterLogin:data=%o`, data);
+            router.push({ path: '/pages/empty', replace: true });
+        } catch (err) {
+            console.log(`onSubmit.afterLogin:err=%o`, err);
+        }
+    },
+    () => {
+        showError.value = true;
     }
-};
+);
 </script>
 
 <template>
@@ -40,7 +68,7 @@ const onSubmit = async () => {
                     </div>
 
                     <div>
-                        <form @submit.prevent="onSubmit">
+                        <form @submit="onSubmit">
                             <label for="email1" class="block text-900 text-xl font-medium mb-2">Email</label>
                             <InputText id="email1" type="text" placeholder="Email address" class="w-full md:w-30rem mb-5" style="padding: 1rem" v-model="email" />
 
@@ -54,13 +82,18 @@ const onSubmit = async () => {
                                 </div>
                                 <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Forgot password?</a>
                             </div>
-                            <Button type="submit" label="Sign In" class="w-full p-3 text-xl"></Button>
+                            <Button type="submit" label="Sign In" class="w-full p-3 text-xl" :loading="isSubmitting"></Button>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <Dialog v-model:visible="showError" modal header="请确认输入" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <ul>
+            <li v-for="(error, field) in errors" :key="field">{{ error }}</li>
+        </ul>
+    </Dialog>
     <AppConfig simple />
 </template>
 

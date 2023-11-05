@@ -8,13 +8,16 @@
         "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
     },
     "dependencies": {
+        "@directus/sdk": "link:/Users/homerh/Code/directus15/sdk",
+        "@vee-validate/zod": "^4.11.8",
         "chart.js": "4.4.0",
         "primeflex": "^3.3.1",
         "primeicons": "^6.0.1",
         "primevue": "3.39.0",
+        "vee-validate": "^4.11.8",
         "vue": "^3.3.7",
         "vue-router": "^4.2.5",
-        "@directus/sdk": "link:/Users/homerh/Code/directus15/sdk"
+        "zod": "3.22.4"
     },
     "devDependencies": {
         "@rushstack/eslint-patch": "^1.5.1",
