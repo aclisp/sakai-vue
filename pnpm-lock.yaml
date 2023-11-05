@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@directus/sdk':
+    specifier: link:/Users/homerh/Code/directus15/sdk
+    version: link:../../Code/directus15/sdk
   chart.js:
     specifier: 4.4.0
     version: 4.4.0
